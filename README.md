@@ -7,23 +7,24 @@ Phiên bản tối ưu hóa cho môi trường **Termux** trên Android.
 Mở Termux và chạy lệnh sau:
 
 ```bash
-pkg update && pkg upgrade
-pkg install git
-git clone https://github.com/lionc2240/autovsf-termux.git
+pkg update && pkg upgrade -y
+pkg install git -y
+git clone https://github.com/your-repo/autovsf-termux.git
 cd autovsf-termux
 chmod +x install.sh
 ./install.sh
 ```
 
-## ⚠️ Lưu ý quan trọng
-VideoSubFinder là một ứng dụng biên dịch cho x86_64 Linux. Để chạy được trên Android (thường là ARM64), bạn cần sử dụng:
-1. **Proot-Distro (Ubuntu):** Cách ổn định nhất.
-2. **Box64 / FEX-Emu:** Để giả lập kiến trúc x86_64 (Dành cho người dùng nâng cao).
-
-Khuyến khích sử dụng bản `autovsf-linux` bên trong `proot-distro install ubuntu`.
+`install.sh` sẽ tự động thiết lập môi trường Ubuntu (Proot), cài đặt Box64 (giả lập x86_64) và các thư viện cần thiết.
 
 ## 🛠 Cách sử dụng
-Sau khi cài đặt xong các phụ thuộc Python:
+
+Mọi thao tác hiện tại sẽ chạy bên trong môi trường Ubuntu của Proot để đảm bảo VideoSubFinder hoạt động:
+
 ```bash
-python headless.py <đường_dẫn_video>
+proot-distro login ubuntu -- bash -c "cd $(pwd) && python3 headless.py <video_path>"
 ```
+
+## ⚠️ Lưu ý quan trọng
+- Lần đầu chạy `./install.sh` có thể mất 5-10 phút để tải và thiết lập môi trường.
+- VideoSubFinder chạy qua giả lập **Box64** nên tốc độ có thể chậm hơn trên PC, nhưng đây là cách ổn định nhất để chạy bản Linux chính thức trên Android.
