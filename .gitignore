@@ -1,0 +1,43 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Sensitive data
+settings.json
+credentials.json
+token.json
+client_secret*.json
+.env
+
+# Workspace artifacts (Temporary)
+*.mp4
+*.txt
+*.srt
+*.log
+*.zip
+*.deb
+*.xz
+
+# Data folders
+raw_texts/
+texts/
+RGBImages/
+TXTImages/
+*_out/
+output\ srt/
+
+# IDE files, artifacts
+.vscode/
+.idea/
+.antigravitycli/
+.gemini/
+.qwen/
+.claude/
+
+# AI context
+GEMINI.md
+CLAUDE.md
+AGENTS.md
+RULES.md
+SKILLS.md
