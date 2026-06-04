@@ -1,41 +1,24 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # install.sh - Bản vá "Bất tử": Chấp nhận mọi trạng thái của Proot
 
-# KHÔNG dùng set -e ở giai đoạn đầu để tránh chết script khi proot-distro báo 'already exists'
-# set -e (Sẽ bật lại sau khi vào Ubuntu)
+# Kiểm tra đang chạy trong Ubuntu hay Termux
 
-# ─── 1. KIỂM TRA MÔI TRƯỜNG (HOST vs GUEST) ───────────────────────────────────
-# Nếu là user thường (không phải root) và có lệnh pkg -> Đang ở Termux Host
-if [ "$(id -u)" != "0" ] && command -v pkg >/dev/null 2>&1; then
-    echo "🌍 [Termux Host] Đang khởi động quy trình..."
-    
-    # Cài proot-distro nếu chưa có
-    if ! command -v proot-distro >/dev/null 2>&1; then
-        pkg update -y && pkg install proot-distro -y
-    fi
+if command -v pkg >/dev/null 2>&1; then
+    echo ""
+    echo "======================================================="
+    echo "❌ Hãy chạy script này BÊN TRONG Ubuntu 20.04"
+    echo ""
+    echo "Ví dụ:"
+    echo "ubuntu"
+    echo "cd autovsf-termux"
+    echo "bash install.sh"
+    echo "======================================================="
+    exit 1
+fi
 
-    DISTRO="ubuntu"
-    
-    echo "📥 Đang kiểm tra/cài đặt $DISTRO (nếu đã có sẽ tự bỏ qua)..."
-    # Thử cài, nếu lỗi (do đã có) thì cũng không sao, chạy tiếp
-    proot-distro install $DISTRO 2>/dev/null || true
-
-    echo "🚀 Chuyển vào môi trường $DISTRO..."
-    # Chạy lại chính script này bên trong Ubuntu
-    # Dùng $(pwd) để đảm bảo đường dẫn chính xác
-    if proot-distro login $DISTRO -- bash -c "cd $(pwd) && bash install.sh"; then
-        echo "==========================================================="
-        echo "🎉 CÀI ĐẶT HOÀN TẤT!"
-        echo "💡 Lệnh chạy AutoVSF:"
-        echo "   proot-distro login ubuntu -- bash -c 'cd $(pwd) && python3 headless.py <video>'"
-        echo "==========================================================="
-        exit 0
-    else
-        echo "==========================================================="
-        echo "❌ CÀI ĐẶT THẤT BẠI! Vui lòng kiểm tra lỗi ở phía trên."
-        echo "==========================================================="
-        exit 1
-    fi
+if [ "$(id -u)" != "0" ]; then
+    echo "❌ Script cần quyền root."
+    exit 1
 fi
 
 # ─── 2. CHẠY TRÊN UBUNTU (GUEST) ──────────────────────────────────────────────
@@ -137,14 +120,7 @@ if os.path.exists(sources_d):
                 f.write("\n\n".join(new_stanzas) + "\n\n")
 '
 
-# Thêm kho lưu trữ amd64 từ archive.ubuntu.com
-CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2)
-if [ -z "$CODENAME" ]; then
-    CODENAME=$(grep UBUNTU_CODENAME /etc/os-release | cut -d= -f2)
-fi
-if [ -z "$CODENAME" ]; then
-    CODENAME=$(lsb_release -c -s 2>/dev/null || echo "noble")
-fi
+CODENAME="focal"
 
 cat <<EOF > /etc/apt/sources.list.d/amd64.list
 deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ $CODENAME main restricted universe multiverse
@@ -167,9 +143,7 @@ DEPS=(
 )
 apt-get install -y "${DEPS[@]}" --ignore-missing
 
-# Thử cài bản t64 cho Ubuntu mới, nếu không được thì cài bản thường
-apt-get install -y libgtk-3-0t64 || apt-get install -y libgtk-3-0 || true
-apt-get install -y libasound2t64 || apt-get install -y libasound2 || true
+apt-get install -y libgtk-3-0 libasound2
 
 # Cài đặt các thư viện amd64 cần thiết cho Box64
 echo "📦 Cài đặt thư viện amd64 (x86_64 dependencies)..."
@@ -191,7 +165,7 @@ fi
 # Thiết lập thư mục và Legacy Libs
 REPO_DIR=$(pwd)
 PARENT_DIR=$(dirname "$REPO_DIR")
-VSF_DIR="$PARENT_DIR/VideoSubFinder"
+VSF_DIR="$REPO_DIR/VideoSubFinder"
 LIBS_DIR="$VSF_DIR/legacy_libs"
 
 echo "🚀 Kiểm tra Legacy Libs (x64)..."
@@ -224,7 +198,6 @@ declare -A DEBS=(
     ["libgcrypt20"]="https://archive.ubuntu.com/ubuntu/pool/main/libg/libgcrypt20/libgcrypt20_1.8.5-5ubuntu1.1_amd64.deb"
     ["libnorm1"]="https://deb.sipwise.com/debian/pool/main/n/norm/libnorm1_1.5.8+dfsg1-1_amd64.deb"
     ["libzix-0-0"]="https://download.nus.edu.sg/mirror/ubuntu//pool/universe/z/zix/libzix-0-0_0.4.2-2build1_amd64.deb"
-    ["libicu74"]="https://archive.ubuntu.com/ubuntu/pool/main/i/icu/libicu74_74.2-1ubuntu3_amd64.deb"
 )
 
 for pkg in "${!DEBS[@]}"; do
