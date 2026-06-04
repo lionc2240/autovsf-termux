@@ -23,14 +23,19 @@ if [ "$(id -u)" != "0" ] && command -v pkg >/dev/null 2>&1; then
     echo "🚀 Chuyển vào môi trường $DISTRO..."
     # Chạy lại chính script này bên trong Ubuntu
     # Dùng $(pwd) để đảm bảo đường dẫn chính xác
-    proot-distro login $DISTRO -- bash -c "cd $(pwd) && bash install.sh"
-    
-    echo "==========================================================="
-    echo "🎉 CÀI ĐẶT HOÀN TẤT!"
-    echo "💡 Lệnh chạy AutoVSF:"
-    echo "   proot-distro login ubuntu -- bash -c 'cd $(pwd) && python3 headless.py <video>'"
-    echo "==========================================================="
-    exit 0
+    if proot-distro login $DISTRO -- bash -c "cd $(pwd) && bash install.sh"; then
+        echo "==========================================================="
+        echo "🎉 CÀI ĐẶT HOÀN TẤT!"
+        echo "💡 Lệnh chạy AutoVSF:"
+        echo "   proot-distro login ubuntu -- bash -c 'cd $(pwd) && python3 headless.py <video>'"
+        echo "==========================================================="
+        exit 0
+    else
+        echo "==========================================================="
+        echo "❌ CÀI ĐẶT THẤT BẠI! Vui lòng kiểm tra lỗi ở phía trên."
+        echo "==========================================================="
+        exit 1
+    fi
 fi
 
 # ─── 2. CHẠY TRÊN UBUNTU (GUEST) ──────────────────────────────────────────────
@@ -38,6 +43,10 @@ fi
 set -e
 
 echo "📦 [Ubuntu Guest] Đang thiết lập hệ thống..."
+
+# Tự động sửa lỗi dpkg bị gián đoạn nếu có
+echo "🔧 Đang sửa lỗi dpkg (nếu có)..."
+dpkg --configure -a
 
 # Dọn dẹp repo cũ (nếu có)
 rm -f /etc/apt/sources.list.d/box64.list
