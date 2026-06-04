@@ -208,6 +208,13 @@ declare -A DEBS=(
     ["libwebp6"]="http://security.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2ubuntu0.20.04.3_amd64.deb"
     ["libcodec2-0.9"]="http://security.ubuntu.com/ubuntu/pool/universe/c/codec2/libcodec2-0.9_0.9.2-2_amd64.deb"
     ["libssh-gcrypt-4"]="https://archive.ubuntu.com/ubuntu/pool/main/libs/libssh/libssh-gcrypt-4_0.9.3-2ubuntu2_amd64.deb"
+    ["libbs2b0"]="https://old-releases.ubuntu.com/ubuntu/pool/universe/libb/libbs2b/libbs2b0_3.1.0+dfsg-2.2build1_amd64.deb"
+    ["liblilv-0-0"]="http://ftp.ubuntu.com/ubuntu/pool/universe/l/lilv/liblilv-0-0_0.24.6-1_amd64.deb"
+    ["librubberband2"]="https://sourceforge.net/projects/makulu/files/repository-14/packages/librubberband2_1.8.1-7ubuntu2_amd64.deb/download"
+    ["libmysofa1"]="http://download.nust.na/pub/ubuntu/ubuntu/pool/universe/libm/libmysofa/libmysofa1_1.0~dfsg0-1_amd64.deb"
+    ["libass9"]="https://mirror.unej.ac.id/ubuntu/pool/universe/liba/libass/libass9_0.14.0-2_amd64.deb"
+    ["libvidstab1.1"]="http://ftp.ubuntu.com/ubuntu/ubuntu/pool/universe/libv/libvidstab/libvidstab1.1_1.1.0-2_amd64.deb"
+    ["libxml2"]="https://robohub.eng.uwaterloo.ca/mirror/ubuntu/pool/main/libx/libxml2/libxml2_2.9.10+dfsg-5_amd64.deb"
 )
 
 for pkg in "${!DEBS[@]}"; do
