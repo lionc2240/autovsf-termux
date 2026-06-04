@@ -182,7 +182,8 @@ apt-get install -y libgtk-3-0 libasound2
 # Cài đặt các thư viện amd64 cần thiết cho Box64
 echo "📦 Cài đặt thư viện amd64 (x86_64 dependencies)..."
 apt-get install -y libavcodec-dev:amd64 libavformat-dev:amd64 libswscale-dev:amd64 libavutil-dev:amd64 \
-                   libx11-6:amd64 libgl1:amd64 libxml2-dev:amd64 libssl-dev:amd64 --ignore-missing
+                   libx11-6:amd64 libgl1:amd64 libxml2-dev:amd64 libssl-dev:amd64 \
+                   libzmq5:amd64 libpcre2-32-0:amd64 libva-dev:amd64 --ignore-missing
 apt-get install -y libwxgtk3.0-gtk3-dev:amd64 --ignore-missing || true
 
 # Cài đặt Box64
