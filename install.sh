@@ -58,25 +58,69 @@ dpkg --add-architecture amd64
 
 # Giới hạn kho lưu trữ ports.ubuntu.com gốc chỉ phục vụ arm64 để tránh xung đột 404 với amd64
 python3 -c '
-import os
-# Cập nhật /etc/apt/sources.list
-if os.path.exists("/etc/apt/sources.list"):
-    with open("/etc/apt/sources.list", "r") as f:
+import os, re
+
+def clean_and_update_line(line):
+    # 1. Dọn dẹp và gộp các ngoặc vuông nếu bị trùng lặp/tách rời (do lần chạy lỗi trước đó)
+    brackets = re.findall(r"\[([^\]]+)\]", line)
+    if len(brackets) > 1:
+        merged_opts = []
+        for opt in brackets:
+            for o in opt.split():
+                if o not in merged_opts:
+                    merged_opts.append(o)
+        line = re.sub(r"\[[^\]]+\]\s*", "", line)
+        match = re.match(r"^(\s*deb(?:-src)?\s+)(.*)$", line)
+        if match:
+            line = f"{match.group(1)}[{chr(32).join(merged_opts)}] {match.group(2)}"
+
+    # 2. Thêm arch=arm64 vào các kho lưu trữ ports.ubuntu.com
+    line_stripped = line.strip()
+    if not (line_stripped.startswith("deb ") or line_stripped.startswith("deb-src ")):
+        return line
+    if "ports.ubuntu.com" not in line_stripped:
+        return line
+
+    match = re.match(r"^(\s*deb(?:-src)?\s+)\[([^\]]+)\]\s+(.*)$", line)
+    if match:
+        prefix = match.group(1)
+        options_str = match.group(2)
+        rest = match.group(3)
+        opts = options_str.split()
+        has_arch = any(o.startswith("arch=") for o in opts)
+        if not has_arch:
+            opts.insert(0, "arch=arm64")
+        return f"{prefix}[{chr(32).join(opts)}] {rest}"
+    else:
+        match_no_opt = re.match(r"^(\s*deb(?:-src)?\s+)(.*)$", line)
+        if match_no_opt:
+            prefix = match_no_opt.group(1)
+            rest = match_no_opt.group(2)
+            return f"{prefix}[arch=arm64] {rest}"
+    return line
+
+def process_list_file(filepath):
+    if not os.path.exists(filepath):
+        return
+    with open(filepath, "r") as f:
         content = f.read()
     new_lines = []
     for line in content.splitlines():
-        if line.strip().startswith("deb ") and "ports.ubuntu.com" in line and not "[arch=" in line:
-            line = line.replace("deb ", "deb [arch=arm64] ", 1)
-        new_lines.append(line)
-    with open("/etc/apt/sources.list", "w") as f:
+        new_lines.append(clean_and_update_line(line))
+    with open(filepath, "w") as f:
         f.write("\n".join(new_lines) + "\n")
 
-# Cập nhật /etc/apt/sources.list.d/*.sources (deb822 format)
+# Cập nhật sources.list chính
+process_list_file("/etc/apt/sources.list")
+
+# Cập nhật các tệp tin trong sources.list.d
 sources_d = "/etc/apt/sources.list.d"
 if os.path.exists(sources_d):
     for filename in os.listdir(sources_d):
-        if filename.endswith(".sources"):
-            filepath = os.path.join(sources_d, filename)
+        filepath = os.path.join(sources_d, filename)
+        if filename.endswith(".list"):
+            process_list_file(filepath)
+        elif filename.endswith(".sources"):
             with open(filepath, "r") as f:
                 content = f.read()
             stanzas = content.split("\n\n")
