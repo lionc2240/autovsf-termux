@@ -52,6 +52,62 @@ dpkg --configure -a
 rm -f /etc/apt/sources.list.d/box64.list
 rm -f /etc/apt/trusted.gpg.d/box64.gpg
 
+# Thiết lập Multiarch (amd64) để cài các thư viện phụ thuộc cho Box64
+echo "🔧 Thiết lập Multiarch (amd64)..."
+dpkg --add-architecture amd64
+
+# Giới hạn kho lưu trữ ports.ubuntu.com gốc chỉ phục vụ arm64 để tránh xung đột 404 với amd64
+python3 -c '
+import os
+# Cập nhật /etc/apt/sources.list
+if os.path.exists("/etc/apt/sources.list"):
+    with open("/etc/apt/sources.list", "r") as f:
+        content = f.read()
+    new_lines = []
+    for line in content.splitlines():
+        if line.strip().startswith("deb ") and "ports.ubuntu.com" in line and not "[arch=" in line:
+            line = line.replace("deb ", "deb [arch=arm64] ", 1)
+        new_lines.append(line)
+    with open("/etc/apt/sources.list", "w") as f:
+        f.write("\n".join(new_lines) + "\n")
+
+# Cập nhật /etc/apt/sources.list.d/*.sources (deb822 format)
+sources_d = "/etc/apt/sources.list.d"
+if os.path.exists(sources_d):
+    for filename in os.listdir(sources_d):
+        if filename.endswith(".sources"):
+            filepath = os.path.join(sources_d, filename)
+            with open(filepath, "r") as f:
+                content = f.read()
+            stanzas = content.split("\n\n")
+            new_stanzas = []
+            for stanza in stanzas:
+                if stanza.strip():
+                    lines = stanza.splitlines()
+                    has_ports = any("ports.ubuntu.com" in l for l in lines)
+                    has_arch = any(l.strip().startswith("Architectures:") for l in lines)
+                    if has_ports and not has_arch:
+                        lines.append("Architectures: arm64")
+                    new_stanzas.append("\n".join(lines))
+            with open(filepath, "w") as f:
+                f.write("\n\n".join(new_stanzas) + "\n\n")
+'
+
+# Thêm kho lưu trữ amd64 từ archive.ubuntu.com
+CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2)
+if [ -z "$CODENAME" ]; then
+    CODENAME=$(grep UBUNTU_CODENAME /etc/os-release | cut -d= -f2)
+fi
+if [ -z "$CODENAME" ]; then
+    CODENAME=$(lsb_release -c -s 2>/dev/null || echo "noble")
+fi
+
+cat <<EOF > /etc/apt/sources.list.d/amd64.list
+deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ $CODENAME main restricted universe multiverse
+deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ $CODENAME-updates main restricted universe multiverse
+deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ $CODENAME-security main restricted universe multiverse
+EOF
+
 # Cập nhật danh sách gói
 echo "🔍 Đang cập nhật APT..."
 apt-get update -y || echo "⚠️ Một số repository gặp lỗi, vẫn tiếp tục..."
@@ -70,6 +126,12 @@ apt-get install -y "${DEPS[@]}" --ignore-missing
 # Thử cài bản t64 cho Ubuntu mới, nếu không được thì cài bản thường
 apt-get install -y libgtk-3-0t64 || apt-get install -y libgtk-3-0 || true
 apt-get install -y libasound2t64 || apt-get install -y libasound2 || true
+
+# Cài đặt các thư viện amd64 cần thiết cho Box64
+echo "📦 Cài đặt thư viện amd64 (x86_64 dependencies)..."
+apt-get install -y libavcodec-dev:amd64 libavformat-dev:amd64 libswscale-dev:amd64 libavutil-dev:amd64 \
+                   libx11-6:amd64 libgl1:amd64 --ignore-missing
+apt-get install -y libwxgtk3.2-dev:amd64 --ignore-missing || apt-get install -y libwxgtk3.0-gtk3-dev:amd64 --ignore-missing || true
 
 # Cài đặt Box64
 if ! command -v box64 &> /dev/null; then
