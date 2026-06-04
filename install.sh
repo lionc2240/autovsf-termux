@@ -212,18 +212,22 @@ declare -A DEBS=(
     ["liblilv-0-0"]="http://ftp.ubuntu.com/ubuntu/pool/universe/l/lilv/liblilv-0-0_0.24.6-1_amd64.deb"
     ["librubberband2"]="https://sourceforge.net/projects/makulu/files/repository-14/packages/librubberband2_1.8.1-7ubuntu2_amd64.deb/download"
     ["libmysofa1"]="http://download.nust.na/pub/ubuntu/ubuntu/pool/universe/libm/libmysofa/libmysofa1_1.0~dfsg0-1_amd64.deb"
-    ["libass9"]="https://mirror.unej.ac.id/ubuntu/pool/universe/liba/libass/libass9_0.14.0-2_amd64.deb"
+    ["libass9"]="https://debian.stanford.edu/debian/pool/main/liba/libass/libass9_0.17.1-1_amd64.deb"
     ["libvidstab1.1"]="http://ftp.ubuntu.com/ubuntu/ubuntu/pool/universe/libv/libvidstab/libvidstab1.1_1.1.0-2_amd64.deb"
-    ["libxml2"]="https://robohub.eng.uwaterloo.ca/mirror/ubuntu/pool/main/libx/libxml2/libxml2_2.9.10+dfsg-5_amd64.deb"
+    ["libxml2"]="http://archive.ubuntu.com/ubuntu/pool/main/libx/libxml2/libxml2_2.9.14+dfsg-1.3ubuntu3.7_amd64.deb"
+    ["libicu70"]="http://archive.ubuntu.com/ubuntu/pool/main/i/icu/libicu70_70.1-2_amd64.deb"
+    ["libxvidcore4"]="https://archive.ubuntu.com/ubuntu/pool/universe/x/xvidcore/libxvidcore4_1.3.7-1_amd64.deb"
 )
 
 for pkg in "${!DEBS[@]}"; do
-    if [ ! -f "${pkg}.so" ] && [ ! -f "${pkg}.so.0" ]; then
+    # Kiểm tra xem file .so thực sự có tồn tại không (không chỉ dựa vào tên pkg)
+    if [ -z "$(ls *.so* 2>/dev/null | grep -i "${pkg//[0-9]/}")" ]; then
         echo "📥 Đang tải $pkg..."
         curl -L -o "$pkg.deb" "${DEBS[$pkg]}"
         dpkg-deb -x "$pkg.deb" .
-        find usr/lib/x86_64-linux-gnu/ -name "*.so*" -exec mv {} . \; || true
-        rm -rf usr/ "$pkg.deb"
+        # Tìm tất cả file .so trong toàn bộ thư mục vừa giải nén và đưa ra ngoài
+        find . -name "*.so*" -exec mv {} . \; || true
+        rm -rf usr/ lib/ "$pkg.deb"
     fi
 done
 
@@ -249,7 +253,7 @@ cat <<EOF > "$VSF_DIR/VideoSubFinderWXW.run"
 #!/bin/sh
 export LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:\$LD_LIBRARY_PATH"
 export BOX64_LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:/usr/lib/x86_64-linux-gnu"
-export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so"
+export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so:libgomp.so.1:libgomp.so:libxml2.so.2:libxml2.so"
 if [ -z "\$DISPLAY" ]; then
     xvfb-run -a box64 ./VideoSubFinderWXW "\$@"
 else
