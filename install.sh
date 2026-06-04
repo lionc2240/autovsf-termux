@@ -31,6 +31,17 @@ echo "📦 [Ubuntu Guest] Đang thiết lập hệ thống..."
 echo "🔧 Đang sửa lỗi dpkg (nếu có)..."
 dpkg --configure -a
 
+# Sửa DNS nếu cần
+rm -f /etc/resolv.conf
+echo "nameserver 1.1.1.1" > /etc/resolv.conf
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+
+# Cập nhật APT trước khi dùng python3
+apt-get update
+
+# Cài Python tối thiểu
+apt-get install -y python3 python3-minimal
+
 # Dọn dẹp repo cũ (nếu có)
 rm -f /etc/apt/sources.list.d/box64.list
 rm -f /etc/apt/trusted.gpg.d/box64.gpg
