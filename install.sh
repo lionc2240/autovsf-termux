@@ -34,10 +34,10 @@ echo "🔧 Đang sửa lỗi dpkg (nếu có)..."
 dpkg --configure -a
 
 # Dọn dẹp repo cũ (nếu có) để tránh lỗi 404
-rm -f /etc/apt/sources.list.d/box64.list
+rm -f /etc/apt/sources.list.d/box64.list /etc/apt/sources.list.d/kitware.list
 rm -f /etc/apt/trusted.gpg.d/box64.gpg
-grep -l "ryanfortner" /etc/apt/sources.list.d/*.list 2>/dev/null | xargs rm -f || true
-sed -i '/ryanfortner/d' /etc/apt/sources.list
+grep -lE "ryanfortner|kitware" /etc/apt/sources.list.d/*.list 2>/dev/null | xargs rm -f || true
+sed -i -E '/ryanfortner|kitware/d' /etc/apt/sources.list
 
 # Sửa DNS nếu cần
 rm -f /etc/resolv.conf
