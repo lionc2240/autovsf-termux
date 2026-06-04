@@ -1,34 +1,28 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# install.sh - Tối ưu hóa & Sửa lỗi GPG cho AutoVSF trên Termux
-# Hỗ trợ Ubuntu 24.04, 25.10 (Noble, Questing)
+# install.sh - Bản vá "Bất tử": Chấp nhận mọi trạng thái của Proot
 
-set -e
+# KHÔNG dùng set -e ở giai đoạn đầu để tránh chết script khi proot-distro báo 'already exists'
+# set -e (Sẽ bật lại sau khi vào Ubuntu)
 
 # ─── 1. KIỂM TRA MÔI TRƯỜNG (HOST vs GUEST) ───────────────────────────────────
-IS_TERMUX_HOST=false
-if [ "$(id -u)" != "0" ] && [ -d "/data/data/com.termux/files/usr" ]; then
-    IS_TERMUX_HOST=true
-fi
-
-if [ "$IS_TERMUX_HOST" = true ] && [ -z "$PROOT_DISTRO_NAME" ]; then
-    echo "🌍 [Termux Host] Đang chuẩn bị môi trường..."
+# Nếu là user thường (không phải root) và có lệnh pkg -> Đang ở Termux Host
+if [ "$(id -u)" != "0" ] && command -v pkg >/dev/null 2>&1; then
+    echo "🌍 [Termux Host] Đang khởi động quy trình..."
     
+    # Cài proot-distro nếu chưa có
     if ! command -v proot-distro >/dev/null 2>&1; then
         pkg update -y && pkg install proot-distro -y
     fi
 
     DISTRO="ubuntu"
-    # Kiểm tra distro đã cài chưa bằng cách kiểm tra thư mục rootfs trực tiếp
-    ROOTFS_DIR="/data/data/com.termux/files/usr/var/lib/proot-distro/installed-rootfs/$DISTRO"
     
-    if [ -d "$ROOTFS_DIR" ]; then
-        echo "✅ $DISTRO đã được cài đặt."
-    else
-        echo "📥 Đang cài đặt $DISTRO (có thể mất vài phút)..."
-        proot-distro install $DISTRO
-    fi
+    echo "📥 Đang kiểm tra/cài đặt $DISTRO (nếu đã có sẽ tự bỏ qua)..."
+    # Thử cài, nếu lỗi (do đã có) thì cũng không sao, chạy tiếp
+    proot-distro install $DISTRO 2>/dev/null || true
 
-    echo "🚀 Chuyển vào môi trường $DISTRO để tiếp tục..."
+    echo "🚀 Chuyển vào môi trường $DISTRO..."
+    # Chạy lại chính script này bên trong Ubuntu
+    # Dùng $(pwd) để đảm bảo đường dẫn chính xác
     proot-distro login $DISTRO -- bash -c "cd $(pwd) && bash install.sh"
     
     echo "==========================================================="
@@ -36,55 +30,55 @@ if [ "$IS_TERMUX_HOST" = true ] && [ -z "$PROOT_DISTRO_NAME" ]; then
     echo "💡 Lệnh chạy AutoVSF:"
     echo "   proot-distro login ubuntu -- bash -c 'cd $(pwd) && python3 headless.py <video>'"
     echo "==========================================================="
-    exit
+    exit 0
 fi
 
 # ─── 2. CHẠY TRÊN UBUNTU (GUEST) ──────────────────────────────────────────────
-echo "📦 [Ubuntu Guest] Đang kiểm tra hệ thống..."
+# Bây giờ mới bật set -e để kiểm soát lỗi trong Ubuntu
+set -e
 
-# Làm sạch các repo cũ gây lỗi GPG (đặc biệt là box64 cũ)
+echo "📦 [Ubuntu Guest] Đang thiết lập hệ thống..."
+
+# Dọn dẹp repo cũ (nếu có)
 rm -f /etc/apt/sources.list.d/box64.list
+rm -f /etc/apt/trusted.gpg.d/box64.gpg
 
-# Cập nhật repo (không để lỗi GPG làm chết script)
-echo "🔍 Đang cập nhật danh sách gói (APT Update)..."
-apt-get update -y || echo "⚠️ Cảnh báo: Một số repository không thể cập nhật, tiếp tục..."
+# Cập nhật danh sách gói
+echo "🔍 Đang cập nhật APT..."
+apt-get update -y || echo "⚠️ Một số repository gặp lỗi, vẫn tiếp tục..."
 
-# Cài đặt các gói cơ bản (Bao gồm gnupg2 để xử lý key)
+# Cài đặt các công cụ cơ bản
 apt-get install -y wget curl xz-utils xvfb ffmpeg python3 python3-pip gnupg2 --ignore-missing
 
-# Xử lý các thư viện GUI & Sound
-echo "🎨 Đang cài đặt thư viện đồ họa & âm thanh..."
+# Cài đặt thư viện đồ họa & âm thanh
+echo "🎨 Cài đặt thư viện hệ thống (t64 compatible)..."
 DEPS=(
     libxss1 libnss3 libxtst6 libxrender1 libxcomposite1
     libdbus-glib-1-2 libnuma1 libgl1
 )
 apt-get install -y "${DEPS[@]}" --ignore-missing
 
-# Xử lý riêng biệt các gói có thể thay đổi tên (t64 cho Noble/Questing)
+# Thử cài bản t64 cho Ubuntu mới, nếu không được thì cài bản thường
 apt-get install -y libgtk-3-0t64 || apt-get install -y libgtk-3-0 || true
 apt-get install -y libasound2t64 || apt-get install -y libasound2 || true
 
 # Cài đặt Box64
 if ! command -v box64 &> /dev/null; then
     echo "🚀 Đang cài đặt Box64..."
-    # 1. Tải và nạp Key GPG trước
     curl -fsSL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/box64.gpg
-    # 2. Thêm Repo chính thức (Dùng định dạng chuẩn cho Box64)
     echo "deb [arch=arm64] https://ryanfortner.github.io/box64-debs/ ./" > /etc/apt/sources.list.d/box64.list
-    # 3. Update lại và cài đặt
     apt-get update -y || true
     apt-get install box64 -y
 else
     echo "✅ Box64 đã sẵn sàng."
 fi
 
-# Thiết lập thư mục làm việc
+# Thiết lập thư mục và Legacy Libs
 REPO_DIR=$(pwd)
 PARENT_DIR=$(dirname "$REPO_DIR")
 VSF_DIR="$PARENT_DIR/VideoSubFinder"
 LIBS_DIR="$VSF_DIR/legacy_libs"
 
-# Xử lý thư viện cũ (Legacy Libs - amd64)
 echo "🚀 Kiểm tra Legacy Libs (x64)..."
 mkdir -p "$LIBS_DIR"
 cd "$LIBS_DIR"
@@ -112,12 +106,12 @@ done
 
 cd "$REPO_DIR"
 
-# Cài đặt Python libs
+# Python Libs
 echo "🚀 Kiểm tra thư viện Python..."
 pip3 install watchdog google-api-python-client google-auth-oauthlib google-auth httplib2 opencv-python psutil Pillow --break-system-packages 2>/dev/null || \
 pip3 install watchdog google-api-python-client google-auth-oauthlib google-auth httplib2 opencv-python psutil Pillow
 
-# Tải VideoSubFinder
+# VideoSubFinder
 if [ ! -f "$VSF_DIR/VideoSubFinderWXW" ]; then
     echo "🚀 Tải VideoSubFinder..."
     VSF_LINK="https://github.com/lionc2240/autovsf-codespaces/releases/download/VideoSubFinder_6.10_ubu20.04.tar.xz/VideoSubFinder_6.10_ubu20.04.tar.xz"
@@ -127,7 +121,7 @@ if [ ! -f "$VSF_DIR/VideoSubFinderWXW" ]; then
     rm "$PARENT_DIR/$VSF_FILE"
 fi
 
-# Cấu hình file .run
+# .run Wrapper
 cat <<EOF > "$VSF_DIR/VideoSubFinderWXW.run"
 #!/bin/sh
 export LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:\$LD_LIBRARY_PATH"
@@ -141,4 +135,4 @@ EOF
 
 chmod +x "$VSF_DIR/VideoSubFinderWXW" "$VSF_DIR/VideoSubFinderWXW.run"
 chmod +x headless.py ocr.py
-echo "✅ Đã hoàn tất cấu hình trong Ubuntu."
+echo "✅ Cài đặt hoàn tất bên trong Ubuntu."
