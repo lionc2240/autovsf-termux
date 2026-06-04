@@ -240,8 +240,8 @@ declare -A DEBS=(
     ["libcodec2-0.9"]="http://security.ubuntu.com/ubuntu/pool/universe/c/codec2/libcodec2-0.9_0.9.2-2_amd64.deb"
     ["libssh-gcrypt-4"]="https://archive.ubuntu.com/ubuntu/pool/main/libs/libssh/libssh-gcrypt-4_0.9.3-2ubuntu2_amd64.deb"
     ["libbs2b0"]="https://old-releases.ubuntu.com/ubuntu/pool/universe/libb/libbs2b/libbs2b0_3.1.0+dfsg-2.2build1_amd64.deb"
-    ["liblilv-0-0"]="http://archive.ubuntu.com/ubuntu/pool/universe/l/lilv/liblilv-0-0_0.26.2-1_amd64.deb"
-    ["librubberband2"]="https://ubuntu.mirror.root.lu/ubuntu/pool/universe/r/rubberband/librubberband2_3.3.0+dfsg-2build1_amd64.deb"
+    ["liblilv-0-0"]="http://archive.ubuntu.com/ubuntu/pool/universe/l/lilv/liblilv-0-0_0.24.6-1_amd64.deb"
+    ["librubberband2"]="http://archive.ubuntu.com/ubuntu/pool/universe/r/rubberband/librubberband2_1.8.2-1build1_amd64.deb"
     ["libmysofa1"]="http://download.nust.na/pub/ubuntu/ubuntu/pool/universe/libm/libmysofa/libmysofa1_1.0~dfsg0-1_amd64.deb"
     ["libass9"]="https://debian.stanford.edu/debian/pool/main/liba/libass/libass9_0.17.1-1_amd64.deb"
     ["libvidstab1.1"]="http://ftp.ubuntu.com/ubuntu/ubuntu/pool/universe/libv/libvidstab/libvidstab1.1_1.1.0-2_amd64.deb"
@@ -253,8 +253,7 @@ declare -A DEBS=(
     ["libsratom-0-0"]="https://archive.ubuntu.com/ubuntu/pool/universe/s/sratom/libsratom-0-0_0.6.4-1_amd64.deb"
     ["libgpg-error0"]="https://archive.ubuntu.com/ubuntu/pool/main/libg/libgpg-error/libgpg-error0_1.37-1_amd64.deb"
     ["libgcrypt20"]="https://archive.ubuntu.com/ubuntu/pool/main/libg/libgcrypt20/libgcrypt20_1.8.5-5ubuntu1.1_amd64.deb"
-    ["libnorm1"]="https://deb.sipwise.com/debian/pool/main/n/norm/libnorm1_1.5.8+dfsg1-1_amd64.deb"
-    ["libzix-0-0"]="https://download.nus.edu.sg/mirror/ubuntu//pool/universe/z/zix/libzix-0-0_0.4.2-2build1_amd64.deb"
+    ["libnorm1"]="http://archive.ubuntu.com/ubuntu/pool/universe/n/norm/libnorm1_1.5.8+dfsg2-2build1_amd64.deb"
 )
 
 for pkg in "${!DEBS[@]}"; do
@@ -296,7 +295,7 @@ cat <<EOF > "$VSF_DIR/VideoSubFinderWXW.run"
 #!/bin/sh
 export LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:\$LD_LIBRARY_PATH"
 export BOX64_LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:/usr/lib/x86_64-linux-gnu"
-export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so:libgomp.so.1:libgomp.so:libgpg-error.so.0:libgcrypt.so.20"
+export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so:libgomp.so.1:libgomp.so:libgpg-error.so.0:libgcrypt.so.20:libavcodec.so.58:libavformat.so.58:libavutil.so.56:libswresample.so.3:libswscale.so.5:libavfilter.so.7"
 if [ -z "\$DISPLAY" ]; then
     xvfb-run -a box64 ./VideoSubFinderWXW "\$@"
 else
