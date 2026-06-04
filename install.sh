@@ -297,7 +297,7 @@ cat <<EOF > "$VSF_DIR/VideoSubFinderWXW.run"
 #!/bin/sh
 export LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:\$LD_LIBRARY_PATH"
 export BOX64_LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:/usr/lib/x86_64-linux-gnu"
-export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so:libgomp.so.1:libgomp.so:libgpg-error.so.0:libgcrypt.so.20:libavcodec.so.58:libavformat.so.58:libavutil.so.56:libswresample.so.3:libswscale.so.5:libavfilter.so.7:libglib-2.0.so.0:libgobject-2.0.so.0:libgio-2.0.so.0:libpango-1.0.so.0:libpangoft2-1.0.so.0"
+export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so:libgomp.so.1:libgomp.so:libgpg-error.so.0:libgcrypt.so.20:libavcodec.so.58:libavformat.so.58:libavutil.so.56:libswresample.so.3:libswscale.so.5:libavfilter.so.7:libglib-2.0.so.0:libgobject-2.0.so.0:libgio-2.0.so.0:libpango-1.0.so.0:libpangoft2-1.0.so.0:libcairo.so.2:libxcb.so.1:libxcb-render.so.0:libxcb-shm.so.0:libXrender.so.1:libX11.so.6:libXext.so.6:libpixman-1.so.0:libXau.so.6:libXdmcp.so.6:libpangocairo-1.0.so.0:libgdk_pixbuf-2.0.so.0:libfontconfig.so.1:libfreetype.so.6:libexpat.so.1"
 if [ -z "\$DISPLAY" ]; then
     xvfb-run -a box64 ./VideoSubFinderWXW "\$@"
 else
