@@ -139,6 +139,11 @@ deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ $CODENAME-updates main restri
 deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ $CODENAME-security main restricted universe multiverse
 EOF
 
+# Thiết lập Kitware repo để lấy CMake mới nhất (Box64 yêu cầu >= 3.19)
+echo "🔧 Thiết lập Kitware repo cho CMake..."
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://kitware.com/ubuntu/ focal main" > /etc/apt/sources.list.d/kitware.list
+
 # Cập nhật danh sách gói
 echo "🔍 Đang cập nhật APT..."
 apt-get update -y || echo "⚠️ Một số repository gặp lỗi, vẫn tiếp tục..."
@@ -157,8 +162,11 @@ gnupg2 \
 git \
 build-essential \
 cmake \
+kitware-archive-keyring \
 pkg-config \
 --ignore-missing
+
+echo "✅ Phiên bản CMake hiện tại: $(cmake --version | head -n 1)"
 
 # Cài đặt thư viện đồ họa & âm thanh
 echo "🎨 Cài đặt thư viện hệ thống (t64 compatible)..."
