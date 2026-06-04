@@ -204,7 +204,7 @@ if ! command -v box64 >/dev/null 2>&1; then
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DARM_DYNAREC=ON
 
-    make -j2
+    make -j1
 
     make install
 
