@@ -241,6 +241,7 @@ cat <<EOF > "$VSF_DIR/VideoSubFinderWXW.run"
 #!/bin/sh
 export LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:\$LD_LIBRARY_PATH"
 export BOX64_LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:/usr/lib/x86_64-linux-gnu"
+export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so"
 if [ -z "\$DISPLAY" ]; then
     xvfb-run -a box64 ./VideoSubFinderWXW "\$@"
 else
