@@ -31,6 +31,7 @@ echo "📦 [Ubuntu Guest] Đang thiết lập hệ thống..."
 
 # Tự động sửa lỗi dpkg bị gián đoạn nếu có
 echo "🔧 Đang sửa lỗi dpkg (nếu có)..."
+dpkg --remove --force-all libwayland-dev:amd64 2>/dev/null || true
 dpkg --configure -a
 
 # Dọn dẹp repo cũ (nếu có) để tránh lỗi 404
