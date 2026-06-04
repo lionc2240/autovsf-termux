@@ -1,28 +1,37 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# install.sh - Tối ưu hóa toàn diện cho AutoVSF trên Termux (Ubuntu 24.04+ compatible)
+# install.sh - Tối ưu hóa cho Termux & Ubuntu 24.04+ (t64 support)
 
 set -e
 
-# ─── KIỂM TRA MÔI TRƯỜNG ──────────────────────────────────────────────────────
-# Nếu có lệnh pkg và KHÔNG có biến PROOT_DISTRO_NAME -> Đang ở Termux Host
-if command -v pkg >/dev/null 2>&1 && [ -z "$PROOT_DISTRO_NAME" ]; then
-    echo "🌍 [Termux] Đang chuẩn bị môi trường Proot-Distro..."
+# ─── 1. KIỂM TRA MÔI TRƯỜNG (HOST vs GUEST) ───────────────────────────────────
+# Một cách chắc chắn để biết đang ở Termux Host: Không phải root và có thư mục Termux
+IS_TERMUX_HOST=false
+if [ "$(id -u)" != "0" ] && [ -d "/data/data/com.termux/files/usr" ]; then
+    IS_TERMUX_HOST=true
+fi
+
+if [ "$IS_TERMUX_HOST" = true ] && [ -z "$PROOT_DISTRO_NAME" ]; then
+    echo "🌍 [Termux Host] Đang chuẩn bị môi trường..."
     
-    # Chỉ cài nếu chưa có
     if ! command -v proot-distro >/dev/null 2>&1; then
         pkg update -y && pkg install proot-distro -y
     fi
 
     DISTRO="ubuntu"
-    # Kiểm tra distro đã cài chưa (chính xác hơn)
-    if proot-distro list | grep -i "$DISTRO" | grep -q "\*"; then
+    # Kiểm tra distro đã cài chưa bằng cách kiểm tra thư mục rootfs trực tiếp
+    # Đây là cách bền bỉ nhất, không phụ thuộc vào định dạng chữ của 'proot-distro list'
+    ROOTFS_DIR="/data/data/com.termux/files/usr/var/lib/proot-distro/installed-rootfs/$DISTRO"
+    
+    if [ -d "$ROOTFS_DIR" ]; then
         echo "✅ $DISTRO đã được cài đặt."
     else
         echo "📥 Đang cài đặt $DISTRO (có thể mất vài phút)..."
-        proot-distro install $DISTRO
+        # Nếu vẫn lỗi 'already exists', ta dùng || true để script chạy tiếp
+        proot-distro install $DISTRO || echo "⚠️ Cảnh báo: Ubuntu có vẻ đã tồn tại."
     fi
 
-    echo "🚀 Chuyển vào môi trường $DISTRO để cài đặt VideoSubFinder & Box64..."
+    echo "🚀 Chuyển vào môi trường $DISTRO để tiếp tục..."
+    # Quan trọng: Gắn kết thư mục hiện tại và chạy tiếp chính script này
     proot-distro login $DISTRO -- bash -c "cd $(pwd) && bash install.sh"
     
     echo "==========================================================="
@@ -33,44 +42,46 @@ if command -v pkg >/dev/null 2>&1 && [ -z "$PROOT_DISTRO_NAME" ]; then
     exit
 fi
 
-# ─── GIAI ĐOẠN 2: CHẠY TRÊN UBUNTU (GUEST) ─────────────────────────────────────
-echo "📦 [Ubuntu] Đang kiểm tra và cài đặt công cụ..."
+# ─── 2. CHẠY TRÊN UBUNTU (GUEST) ──────────────────────────────────────────────
+echo "📦 [Ubuntu Guest] Đang kiểm tra hệ thống..."
 
-# Cập nhật repo nếu cần (bỏ qua nếu đã chạy gần đây để tăng tốc)
-if [ ! -f "/var/lib/apt/periodic/update-success-stamp" ] || [ $(find /var/lib/apt/periodic/update-success-stamp -mmin +1440) ]; then
+# Cập nhật repo (chỉ chạy nếu cần)
+if [ ! -f "/var/lib/apt/periodic/update-success-stamp" ]; then
     apt-get update -y
 fi
 
-# Danh sách package hỗ trợ cả bản Ubuntu cũ và mới (t64)
-PACKAGES=(
-    wget curl xz-utils xvfb ffmpeg python3 python3-pip gnupg2
+# Cài đặt các gói cơ bản
+apt-get install -y wget curl xz-utils xvfb ffmpeg python3 python3-pip gnupg2 --ignore-missing
+
+# Xử lý các thư viện GUI & Sound (Hỗ trợ cả bản cũ và bản t64 của Ubuntu 24.04)
+# Chúng ta cài lần lượt để nếu một cái lỗi thì cái kia vẫn chạy
+echo "🎨 Đang cài đặt thư viện đồ họa & âm thanh..."
+DEPS=(
     libxss1 libnss3 libxtst6 libxrender1 libxcomposite1
     libdbus-glib-1-2 libnuma1 libgl1
-    libgtk-3-0 libgtk-3-0t64 
-    libasound2 libasound2t64
 )
+apt-get install -y "${DEPS[@]}" --ignore-missing
 
-# Cài đặt (bỏ qua các package không tìm thấy để tránh lỗi dừng script)
-apt-get install -y "${PACKAGES[@]}" --ignore-missing || true
+# Xử lý riêng biệt các gói có thể thay đổi tên (t64)
+apt-get install -y libgtk-3-0t64 || apt-get install -y libgtk-3-0 || true
+apt-get install -y libasound2t64 || apt-get install -y libasound2 || true
 
 # Cài đặt Box64
 if ! command -v box64 &> /dev/null; then
     echo "🚀 Đang cài đặt Box64..."
     echo "deb [arch=arm64] https://ryanfortner.github.io/box64-debs/ ./" > /etc/apt/sources.list.d/box64.list
-    curl -sL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box64.gpg
+    curl -sL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/box64.gpg
     apt-get update -y && apt-get install box64 -y
-else
-    echo "✅ Box64 đã sẵn sàng."
 fi
 
-# Thiết lập thư mục
+# Thiết lập thư mục làm việc
 REPO_DIR=$(pwd)
 PARENT_DIR=$(dirname "$REPO_DIR")
 VSF_DIR="$PARENT_DIR/VideoSubFinder"
 LIBS_DIR="$VSF_DIR/legacy_libs"
 
 # Xử lý thư viện cũ (Legacy Libs - amd64)
-echo "🚀 Kiểm tra thư viện cũ (Legacy Libs)..."
+echo "🚀 Kiểm tra Legacy Libs (x64)..."
 mkdir -p "$LIBS_DIR"
 cd "$LIBS_DIR"
 
@@ -87,7 +98,7 @@ declare -A DEBS=(
 
 for pkg in "${!DEBS[@]}"; do
     if [ ! -f "${pkg}.so" ] && [ ! -f "${pkg}.so.0" ]; then
-        echo "📥 Đang tải $pkg (x64)..."
+        echo "📥 Đang tải $pkg..."
         curl -L -o "$pkg.deb" "${DEBS[$pkg]}"
         dpkg-deb -x "$pkg.deb" .
         find usr/lib/x86_64-linux-gnu/ -name "*.so*" -exec mv {} . \; || true
@@ -97,7 +108,7 @@ done
 
 cd "$REPO_DIR"
 
-# Cài đặt thư viện Python
+# Cài đặt Python libs
 echo "🚀 Kiểm tra thư viện Python..."
 pip3 install watchdog google-api-python-client google-auth-oauthlib google-auth httplib2 opencv-python psutil Pillow --break-system-packages 2>/dev/null || \
 pip3 install watchdog google-api-python-client google-auth-oauthlib google-auth httplib2 opencv-python psutil Pillow
@@ -126,4 +137,4 @@ EOF
 
 chmod +x "$VSF_DIR/VideoSubFinderWXW" "$VSF_DIR/VideoSubFinderWXW.run"
 chmod +x headless.py ocr.py
-echo "✅ Đã cấu hình xong mọi thứ trong Ubuntu."
+echo "✅ Đã hoàn tất cấu hình trong Ubuntu."
