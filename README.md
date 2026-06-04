@@ -9,7 +9,7 @@ Mở Termux và chạy lệnh sau:
 ```bash
 pkg update && pkg upgrade -y
 pkg install git -y
-git clone https://github.com/your-repo/autovsf-termux.git
+git clone https://github.com/lionc2240/autovsf-termux.git
 cd autovsf-termux
 chmod +x install.sh
 ./install.sh
