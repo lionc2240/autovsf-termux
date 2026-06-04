@@ -232,7 +232,7 @@ cd "$LIBS_DIR"
 rm -f *.so* *.deb
 
 declare -A DEBS=(
-    ["libaom0"]="https://archive.ubuntu.com/ubuntu/pool/universe/a/aom/libaom0_1.0.0.errata1-3build1_amd64.deb"
+    ["libaom0"]="http://archive.ubuntu.com/ubuntu/pool/universe/a/aom/libaom0_1.0.0.errata1-3build1_amd64.deb"
     ["libvpx6"]="http://azure.archive.ubuntu.com/ubuntu/pool/main/libv/libvpx/libvpx6_1.8.2-1ubuntu0.4_amd64.deb"
     ["libx264-155"]="http://archive.ubuntu.com/ubuntu/pool/universe/x/x264/libx264-155_0.155.2917+git0a84d98-2_amd64.deb"
     ["libx265-179"]="http://ftp.ubuntu.com/ubuntu/ubuntu/pool/universe/x/x265/libx265-179_3.2.1-1build1_amd64.deb"
@@ -240,21 +240,21 @@ declare -A DEBS=(
     ["libwavpack1"]="http://azure.archive.ubuntu.com/ubuntu/pool/main/w/wavpack/libwavpack1_5.2.0-1ubuntu0.1_amd64.deb"
     ["libwebp6"]="http://security.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2ubuntu0.20.04.3_amd64.deb"
     ["libcodec2-0.9"]="http://security.ubuntu.com/ubuntu/pool/universe/c/codec2/libcodec2-0.9_0.9.2-2_amd64.deb"
-    ["libssh-gcrypt-4"]="https://archive.ubuntu.com/ubuntu/pool/main/libs/libssh/libssh-gcrypt-4_0.9.3-2ubuntu2_amd64.deb"
+    ["libssh-gcrypt-4"]="http://archive.ubuntu.com/ubuntu/pool/main/libs/libssh/libssh-gcrypt-4_0.9.3-2ubuntu2_amd64.deb"
     ["libbs2b0"]="http://archive.ubuntu.com/ubuntu/pool/universe/libb/libbs2b/libbs2b0_3.1.0+dfsg-2.2build1_amd64.deb"
     ["liblilv-0-0"]="http://archive.ubuntu.com/ubuntu/pool/universe/l/lilv/liblilv-0-0_0.24.6-1_amd64.deb"
     ["librubberband2"]="http://archive.ubuntu.com/ubuntu/pool/universe/r/rubberband/librubberband2_1.8.2-1build1_amd64.deb"
     ["libmysofa1"]="http://download.nust.na/pub/ubuntu/ubuntu/pool/universe/libm/libmysofa/libmysofa1_1.0~dfsg0-1_amd64.deb"
-    ["libass9"]="https://debian.stanford.edu/debian/pool/main/liba/libass/libass9_0.17.1-1_amd64.deb"
+    ["libass9"]="http://debian.stanford.edu/debian/pool/main/liba/libass/libass9_0.17.1-1_amd64.deb"
     ["libvidstab1.1"]="http://ftp.ubuntu.com/ubuntu/ubuntu/pool/universe/libv/libvidstab/libvidstab1.1_1.1.0-2_amd64.deb"
-    ["libxvidcore4"]="https://archive.ubuntu.com/ubuntu/pool/universe/x/xvidcore/libxvidcore4_1.3.7-1_amd64.deb"
-    ["libsamplerate0"]="https://mirrors.united.cd/ubuntu/pool/main/libs/libsamplerate/libsamplerate0_0.1.9-2_amd64.deb"
-    ["libfftw3-double3"]="https://ftp.riken.jp/Linux/ubuntu/pool/main/f/fftw3/libfftw3-double3_3.3.8-2ubuntu1_amd64.deb"
-    ["libserd-0-0"]="https://debian.stanford.edu/ubuntu/pool/universe/s/serd/libserd-0-0_0.30.2-1_amd64.deb"
-    ["libsord-0-0"]="https://lu.releases.ubuntu.com/ubuntu/ubuntu/pool/universe/s/sord/libsord-0-0_0.16.4-1_amd64.deb"
-    ["libsratom-0-0"]="https://archive.ubuntu.com/ubuntu/pool/universe/s/sratom/libsratom-0-0_0.6.4-1_amd64.deb"
-    ["libgpg-error0"]="https://archive.ubuntu.com/ubuntu/pool/main/libg/libgpg-error/libgpg-error0_1.37-1_amd64.deb"
-    ["libgcrypt20"]="https://archive.ubuntu.com/ubuntu/pool/main/libg/libgcrypt20/libgcrypt20_1.8.5-5ubuntu1.1_amd64.deb"
+    ["libxvidcore4"]="http://archive.ubuntu.com/ubuntu/pool/universe/x/xvidcore/libxvidcore4_1.3.7-1_amd64.deb"
+    ["libsamplerate0"]="http://mirrors.united.cd/ubuntu/pool/main/libs/libsamplerate/libsamplerate0_0.1.9-2_amd64.deb"
+    ["libfftw3-double3"]="http://ftp.riken.jp/Linux/ubuntu/pool/main/f/fftw3/libfftw3-double3_3.3.8-2ubuntu1_amd64.deb"
+    ["libserd-0-0"]="http://debian.stanford.edu/ubuntu/pool/universe/s/serd/libserd-0-0_0.30.2-1_amd64.deb"
+    ["libsord-0-0"]="http://lu.releases.ubuntu.com/ubuntu/ubuntu/pool/universe/s/sord/libsord-0-0_0.16.4-1_amd64.deb"
+    ["libsratom-0-0"]="http://archive.ubuntu.com/ubuntu/pool/universe/s/sratom/libsratom-0-0_0.6.4-1_amd64.deb"
+    ["libgpg-error0"]="http://archive.ubuntu.com/ubuntu/pool/main/libg/libgpg-error/libgpg-error0_1.37-1_amd64.deb"
+    ["libgcrypt20"]="http://archive.ubuntu.com/ubuntu/pool/main/libg/libgcrypt20/libgcrypt20_1.8.5-5ubuntu1.1_amd64.deb"
     ["libnorm1"]="http://archive.ubuntu.com/ubuntu/pool/universe/n/norm/libnorm1_1.5.8+dfsg2-2build1_amd64.deb"
 )
 
@@ -262,7 +262,17 @@ for pkg in "${!DEBS[@]}"; do
     # Kiểm tra xem file .so thực sự có tồn tại không (không chỉ dựa vào tên pkg)
     if [ -z "$(ls *.so* 2>/dev/null | grep -i "${pkg//[0-9]/}")" ]; then
         echo "📥 Đang tải $pkg..."
-        curl -L -o "$pkg.deb" "${DEBS[$pkg]}"
+        FILENAME="$(basename "${DEBS[$pkg]}")"
+        # Tìm file .deb trong máy trước (trường hợp user tự tải)
+        if [ -f "/sdcard/Download/$FILENAME" ]; then
+            cp "/sdcard/Download/$FILENAME" "$pkg.deb"
+            echo "   ✅ Đã lấy file từ /sdcard/Download"
+        elif [ -f "/sdcard/downloads/$FILENAME" ]; then
+            cp "/sdcard/downloads/$FILENAME" "$pkg.deb"
+            echo "   ✅ Đã lấy file từ /sdcard/downloads"
+        else
+            curl -L -o "$pkg.deb" "${DEBS[$pkg]}"
+        fi
         dpkg-deb -x "$pkg.deb" .
         # Tìm tất cả file .so trong toàn bộ thư mục vừa giải nén và đưa ra ngoài
         find . -name "*.so*" -exec mv {} . \; || true
