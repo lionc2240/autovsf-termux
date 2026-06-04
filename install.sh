@@ -223,6 +223,7 @@ declare -A DEBS=(
     ["libsord-0-0"]="https://lu.releases.ubuntu.com/ubuntu/ubuntu/pool/universe/s/sord/libsord-0-0_0.16.4-1_amd64.deb"
     ["libsratom-0-0"]="https://archive.ubuntu.com/ubuntu/pool/universe/s/sratom/libsratom-0-0_0.6.4-1_amd64.deb"
     ["libgpg-error0"]="https://archive.ubuntu.com/ubuntu/pool/main/libg/libgpg-error/libgpg-error0_1.37-1_amd64.deb"
+    ["libgcrypt20"]="https://archive.ubuntu.com/ubuntu/pool/main/libg/libgcrypt20/libgcrypt20_1.8.5-5ubuntu1.1_amd64.deb"
     ["libnorm1"]="https://deb.sipwise.com/debian/pool/main/n/norm/libnorm1_1.5.8+dfsg1-1_amd64.deb"
 )
 
@@ -237,6 +238,20 @@ for pkg in "${!DEBS[@]}"; do
         rm -rf usr/ lib/ "$pkg.deb"
     fi
 done
+
+# Tạo symlink ICU compat: libxml2.so.16 (questing system) cần libicuuc.so.74
+# nhưng ta chỉ có ICU 70 trong legacy_libs → symlink để Box64 resolve được
+for lib in libicuuc libicui18n libicudata; do
+    src=$(ls "$LIBS_DIR/${lib}.so.7"* 2>/dev/null | head -1)
+    if [ -n "$src" ] && [ ! -e "$LIBS_DIR/${lib}.so.74" ]; then
+        ln -sf "$(basename "$src")" "$LIBS_DIR/${lib}.so.74"
+    fi
+done
+
+# Symlink libxml2.so.16 → libxml2.so.2 để Box64 dùng bản focal thay vì bản questing
+if [ -f "$LIBS_DIR/libxml2.so.2" ] && [ ! -e "$LIBS_DIR/libxml2.so.16" ]; then
+    ln -sf libxml2.so.2 "$LIBS_DIR/libxml2.so.16"
+fi
 
 cd "$REPO_DIR"
 
@@ -260,7 +275,7 @@ cat <<EOF > "$VSF_DIR/VideoSubFinderWXW.run"
 #!/bin/sh
 export LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:\$LD_LIBRARY_PATH"
 export BOX64_LD_LIBRARY_PATH="$LIBS_DIR:\$PWD:/usr/lib/x86_64-linux-gnu"
-export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so:libgomp.so.1:libgomp.so:libxml2.so.2:libxml2.so"
+export BOX64_EMULATED_LIBS="libOpenCL.so.1:libOpenCL.so:libgomp.so.1:libgomp.so:libxml2.so.2:libxml2.so:libxml2.so.16:libgpg-error.so.0:libgcrypt.so.20:libnorm.so.1"
 if [ -z "\$DISPLAY" ]; then
     xvfb-run -a box64 ./VideoSubFinderWXW "\$@"
 else
