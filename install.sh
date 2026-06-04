@@ -1,10 +1,10 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# install.sh - Tối ưu hóa cho Termux & Ubuntu 24.04+ (t64 support)
+# install.sh - Tối ưu hóa & Sửa lỗi GPG cho AutoVSF trên Termux
+# Hỗ trợ Ubuntu 24.04, 25.10 (Noble, Questing)
 
 set -e
 
 # ─── 1. KIỂM TRA MÔI TRƯỜNG (HOST vs GUEST) ───────────────────────────────────
-# Một cách chắc chắn để biết đang ở Termux Host: Không phải root và có thư mục Termux
 IS_TERMUX_HOST=false
 if [ "$(id -u)" != "0" ] && [ -d "/data/data/com.termux/files/usr" ]; then
     IS_TERMUX_HOST=true
@@ -19,19 +19,16 @@ if [ "$IS_TERMUX_HOST" = true ] && [ -z "$PROOT_DISTRO_NAME" ]; then
 
     DISTRO="ubuntu"
     # Kiểm tra distro đã cài chưa bằng cách kiểm tra thư mục rootfs trực tiếp
-    # Đây là cách bền bỉ nhất, không phụ thuộc vào định dạng chữ của 'proot-distro list'
     ROOTFS_DIR="/data/data/com.termux/files/usr/var/lib/proot-distro/installed-rootfs/$DISTRO"
     
     if [ -d "$ROOTFS_DIR" ]; then
         echo "✅ $DISTRO đã được cài đặt."
     else
         echo "📥 Đang cài đặt $DISTRO (có thể mất vài phút)..."
-        # Nếu vẫn lỗi 'already exists', ta dùng || true để script chạy tiếp
-        proot-distro install $DISTRO || echo "⚠️ Cảnh báo: Ubuntu có vẻ đã tồn tại."
+        proot-distro install $DISTRO
     fi
 
     echo "🚀 Chuyển vào môi trường $DISTRO để tiếp tục..."
-    # Quan trọng: Gắn kết thư mục hiện tại và chạy tiếp chính script này
     proot-distro login $DISTRO -- bash -c "cd $(pwd) && bash install.sh"
     
     echo "==========================================================="
@@ -45,16 +42,17 @@ fi
 # ─── 2. CHẠY TRÊN UBUNTU (GUEST) ──────────────────────────────────────────────
 echo "📦 [Ubuntu Guest] Đang kiểm tra hệ thống..."
 
-# Cập nhật repo (chỉ chạy nếu cần)
-if [ ! -f "/var/lib/apt/periodic/update-success-stamp" ]; then
-    apt-get update -y
-fi
+# Làm sạch các repo cũ gây lỗi GPG (đặc biệt là box64 cũ)
+rm -f /etc/apt/sources.list.d/box64.list
 
-# Cài đặt các gói cơ bản
+# Cập nhật repo (không để lỗi GPG làm chết script)
+echo "🔍 Đang cập nhật danh sách gói (APT Update)..."
+apt-get update -y || echo "⚠️ Cảnh báo: Một số repository không thể cập nhật, tiếp tục..."
+
+# Cài đặt các gói cơ bản (Bao gồm gnupg2 để xử lý key)
 apt-get install -y wget curl xz-utils xvfb ffmpeg python3 python3-pip gnupg2 --ignore-missing
 
-# Xử lý các thư viện GUI & Sound (Hỗ trợ cả bản cũ và bản t64 của Ubuntu 24.04)
-# Chúng ta cài lần lượt để nếu một cái lỗi thì cái kia vẫn chạy
+# Xử lý các thư viện GUI & Sound
 echo "🎨 Đang cài đặt thư viện đồ họa & âm thanh..."
 DEPS=(
     libxss1 libnss3 libxtst6 libxrender1 libxcomposite1
@@ -62,16 +60,22 @@ DEPS=(
 )
 apt-get install -y "${DEPS[@]}" --ignore-missing
 
-# Xử lý riêng biệt các gói có thể thay đổi tên (t64)
+# Xử lý riêng biệt các gói có thể thay đổi tên (t64 cho Noble/Questing)
 apt-get install -y libgtk-3-0t64 || apt-get install -y libgtk-3-0 || true
 apt-get install -y libasound2t64 || apt-get install -y libasound2 || true
 
 # Cài đặt Box64
 if ! command -v box64 &> /dev/null; then
     echo "🚀 Đang cài đặt Box64..."
+    # 1. Tải và nạp Key GPG trước
+    curl -fsSL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/box64.gpg
+    # 2. Thêm Repo chính thức (Dùng định dạng chuẩn cho Box64)
     echo "deb [arch=arm64] https://ryanfortner.github.io/box64-debs/ ./" > /etc/apt/sources.list.d/box64.list
-    curl -sL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/box64.gpg
-    apt-get update -y && apt-get install box64 -y
+    # 3. Update lại và cài đặt
+    apt-get update -y || true
+    apt-get install box64 -y
+else
+    echo "✅ Box64 đã sẵn sàng."
 fi
 
 # Thiết lập thư mục làm việc
