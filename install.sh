@@ -25,6 +25,8 @@ fi
 # Bây giờ mới bật set -e để kiểm soát lỗi trong Ubuntu
 set -e
 
+REPO_DIR="$(pwd)"
+
 echo "📦 [Ubuntu Guest] Đang thiết lập hệ thống..."
 
 # Tự động sửa lỗi dpkg bị gián đoạn nếu có
@@ -33,11 +35,6 @@ dpkg --configure -a
 
 apt-get update
 
-apt-get install -y \
-python3 \
-python3-pip \
-python3-minimal
-
 # Sửa DNS nếu cần
 rm -f /etc/resolv.conf
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
@@ -45,9 +42,6 @@ echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 
 # Cập nhật APT trước khi dùng python3
 apt-get update
-
-# Cài Python tối thiểu
-apt-get install -y python3 python3-minimal
 
 # Dọn dẹp repo cũ (nếu có)
 rm -f /etc/apt/sources.list.d/box64.list
@@ -151,7 +145,21 @@ echo "🔍 Đang cập nhật APT..."
 apt-get update -y || echo "⚠️ Một số repository gặp lỗi, vẫn tiếp tục..."
 
 # Cài đặt các công cụ cơ bản
-apt-get install -y wget curl xz-utils xvfb ffmpeg python3 python3-pip gnupg2 --ignore-missing
+apt-get install -y \
+wget \
+curl \
+xz-utils \
+xvfb \
+ffmpeg \
+python3 \
+python3-pip \
+python3-minimal \
+gnupg2 \
+git \
+build-essential \
+cmake \
+pkg-config \
+--ignore-missing
 
 # Cài đặt thư viện đồ họa & âm thanh
 echo "🎨 Cài đặt thư viện hệ thống (t64 compatible)..."
@@ -167,39 +175,36 @@ apt-get install -y libgtk-3-0 libasound2
 echo "📦 Cài đặt thư viện amd64 (x86_64 dependencies)..."
 apt-get install -y libavcodec-dev:amd64 libavformat-dev:amd64 libswscale-dev:amd64 libavutil-dev:amd64 \
                    libx11-6:amd64 libgl1:amd64 libxml2-dev:amd64 libssl-dev:amd64 --ignore-missing
-apt-get install -y libwxgtk3.2-dev:amd64 --ignore-missing || apt-get install -y libwxgtk3.0-gtk3-dev:amd64 --ignore-missing || true
+apt-get install -y libwxgtk3.0-gtk3-dev:amd64 --ignore-missing || true
 
 # Cài đặt Box64
-if ! command -v box64 &> /dev/null; then
-    echo "🚀 Đang cài đặt Box64..."
-echo "🚀 Build Box64 từ source..."
+if ! command -v box64 >/dev/null 2>&1; then
+    echo "🚀 Build Box64 từ source..."
 
-apt-get install -y \
-git \
-build-essential \
-cmake
+    cd /tmp
 
-cd /tmp
+    rm -rf box64
 
-rm -rf box64
+    git clone https://github.com/ptitSeb/box64.git
 
-git clone https://github.com/ptitSeb/box64.git
+    cd box64
 
-cd box64
+    mkdir -p build
+    cd build
 
-mkdir build
-cd build
+    cmake .. \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DARM_DYNAREC=ON
 
-cmake .. \
--DCMAKE_BUILD_TYPE=RelWithDebInfo \
--DARM_DYNAREC=ON
+    make -j"$(nproc)"
 
-make -j$(nproc)
+    make install
 
-make install
+    ldconfig
 
-ldconfig
+    cd "$REPO_DIR"
 
+    echo "✅ Box64 đã được cài."
 else
     echo "✅ Box64 đã sẵn sàng."
 fi
@@ -207,7 +212,7 @@ fi
 # Thiết lập thư mục và Legacy Libs
 REPO_DIR=$(pwd)
 PARENT_DIR=$(dirname "$REPO_DIR")
-VSF_DIR="$REPO_DIR/VideoSubFinder"
+VSF_DIR="$PARENT_DIR/VideoSubFinder"
 LIBS_DIR="$VSF_DIR/legacy_libs"
 
 echo "🚀 Kiểm tra Legacy Libs (x64)..."
