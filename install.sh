@@ -11,9 +11,12 @@ if [ -d "/data/data/com.termux/files/usr" ] && [ -z "$PROOT_DISTRO_NAME" ]; then
     pkg install proot-distro -y
 
     DISTRO="ubuntu"
-    if ! proot-distro list | grep -q "$DISTRO.*installed"; then
+    # Kiểm tra xem distro đã được cài đặt chưa bằng cách check thư mục rootfs
+    if [ ! -d "$PREFIX/var/lib/proot-distro/installed-rootfs/$DISTRO" ]; then
         echo "📥 Đang cài đặt $DISTRO (có thể mất vài phút)..."
         proot-distro install $DISTRO
+    else
+        echo "✅ $DISTRO đã được cài đặt, bỏ qua bước tạo container."
     fi
 
     # Gắn kết (bind) thư mục hiện tại vào trong distro và chạy tiếp
