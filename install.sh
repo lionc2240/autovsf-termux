@@ -174,7 +174,7 @@ apt-get install -y libasound2t64 || apt-get install -y libasound2 || true
 # Cài đặt các thư viện amd64 cần thiết cho Box64
 echo "📦 Cài đặt thư viện amd64 (x86_64 dependencies)..."
 apt-get install -y libavcodec-dev:amd64 libavformat-dev:amd64 libswscale-dev:amd64 libavutil-dev:amd64 \
-                   libx11-6:amd64 libgl1:amd64 --ignore-missing
+                   libx11-6:amd64 libgl1:amd64 libxml2-dev:amd64 libssl-dev:amd64 --ignore-missing
 apt-get install -y libwxgtk3.2-dev:amd64 --ignore-missing || apt-get install -y libwxgtk3.0-gtk3-dev:amd64 --ignore-missing || true
 
 # Cài đặt Box64
@@ -207,6 +207,7 @@ declare -A DEBS=(
     ["libwavpack1"]="http://azure.archive.ubuntu.com/ubuntu/pool/main/w/wavpack/libwavpack1_5.2.0-1ubuntu0.1_amd64.deb"
     ["libwebp6"]="http://security.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2ubuntu0.20.04.3_amd64.deb"
     ["libcodec2-0.9"]="http://security.ubuntu.com/ubuntu/pool/universe/c/codec2/libcodec2-0.9_0.9.2-2_amd64.deb"
+    ["libssh-gcrypt-4"]="https://archive.ubuntu.com/ubuntu/pool/main/libs/libssh/libssh-gcrypt-4_0.9.3-2ubuntu2_amd64.deb"
 )
 
 for pkg in "${!DEBS[@]}"; do
