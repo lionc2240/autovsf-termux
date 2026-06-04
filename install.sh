@@ -209,14 +209,21 @@ declare -A DEBS=(
     ["libcodec2-0.9"]="http://security.ubuntu.com/ubuntu/pool/universe/c/codec2/libcodec2-0.9_0.9.2-2_amd64.deb"
     ["libssh-gcrypt-4"]="https://archive.ubuntu.com/ubuntu/pool/main/libs/libssh/libssh-gcrypt-4_0.9.3-2ubuntu2_amd64.deb"
     ["libbs2b0"]="https://old-releases.ubuntu.com/ubuntu/pool/universe/libb/libbs2b/libbs2b0_3.1.0+dfsg-2.2build1_amd64.deb"
-    ["liblilv-0-0"]="http://ftp.ubuntu.com/ubuntu/pool/universe/l/lilv/liblilv-0-0_0.24.6-1_amd64.deb"
-    ["librubberband2"]="https://sourceforge.net/projects/makulu/files/repository-14/packages/librubberband2_1.8.1-7ubuntu2_amd64.deb/download"
+    ["liblilv-0-0"]="http://archive.ubuntu.com/ubuntu/pool/universe/l/lilv/liblilv-0-0_0.26.2-1_amd64.deb"
+    ["librubberband2"]="https://ubuntu.mirror.root.lu/ubuntu/pool/universe/r/rubberband/librubberband2_3.3.0+dfsg-2build1_amd64.deb"
     ["libmysofa1"]="http://download.nust.na/pub/ubuntu/ubuntu/pool/universe/libm/libmysofa/libmysofa1_1.0~dfsg0-1_amd64.deb"
     ["libass9"]="https://debian.stanford.edu/debian/pool/main/liba/libass/libass9_0.17.1-1_amd64.deb"
     ["libvidstab1.1"]="http://ftp.ubuntu.com/ubuntu/ubuntu/pool/universe/libv/libvidstab/libvidstab1.1_1.1.0-2_amd64.deb"
     ["libxml2"]="http://archive.ubuntu.com/ubuntu/pool/main/libx/libxml2/libxml2_2.9.14+dfsg-1.3ubuntu3.7_amd64.deb"
     ["libicu70"]="http://archive.ubuntu.com/ubuntu/pool/main/i/icu/libicu70_70.1-2_amd64.deb"
     ["libxvidcore4"]="https://archive.ubuntu.com/ubuntu/pool/universe/x/xvidcore/libxvidcore4_1.3.7-1_amd64.deb"
+    ["libsamplerate0"]="https://mirrors.united.cd/ubuntu/pool/main/libs/libsamplerate/libsamplerate0_0.1.9-2_amd64.deb"
+    ["libfftw3-double3"]="https://ftp.riken.jp/Linux/ubuntu/pool/main/f/fftw3/libfftw3-double3_3.3.8-2ubuntu1_amd64.deb"
+    ["libserd-0-0"]="https://debian.stanford.edu/ubuntu/pool/universe/s/serd/libserd-0-0_0.30.2-1_amd64.deb"
+    ["libsord-0-0"]="https://lu.releases.ubuntu.com/ubuntu/ubuntu/pool/universe/s/sord/libsord-0-0_0.16.4-1_amd64.deb"
+    ["libsratom-0-0"]="https://archive.ubuntu.com/ubuntu/pool/universe/s/sratom/libsratom-0-0_0.6.4-1_amd64.deb"
+    ["libgpg-error0"]="https://archive.ubuntu.com/ubuntu/pool/main/libg/libgpg-error/libgpg-error0_1.37-1_amd64.deb"
+    ["libnorm1"]="https://deb.sipwise.com/debian/pool/main/n/norm/libnorm1_1.5.8+dfsg1-1_amd64.deb"
 )
 
 for pkg in "${!DEBS[@]}"; do
