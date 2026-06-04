@@ -33,19 +33,18 @@ echo "📦 [Ubuntu Guest] Đang thiết lập hệ thống..."
 echo "🔧 Đang sửa lỗi dpkg (nếu có)..."
 dpkg --configure -a
 
-apt-get update
+# Dọn dẹp repo cũ (nếu có) để tránh lỗi 404
+rm -f /etc/apt/sources.list.d/box64.list
+rm -f /etc/apt/trusted.gpg.d/box64.gpg
+grep -l "ryanfortner" /etc/apt/sources.list.d/*.list 2>/dev/null | xargs rm -f || true
+sed -i '/ryanfortner/d' /etc/apt/sources.list
 
 # Sửa DNS nếu cần
 rm -f /etc/resolv.conf
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 
-# Cập nhật APT trước khi dùng python3
 apt-get update
-
-# Dọn dẹp repo cũ (nếu có)
-rm -f /etc/apt/sources.list.d/box64.list
-rm -f /etc/apt/trusted.gpg.d/box64.gpg
 
 # Thiết lập Multiarch (amd64) để cài các thư viện phụ thuộc cho Box64
 echo "🔧 Thiết lập Multiarch (amd64)..."
