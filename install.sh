@@ -31,6 +31,13 @@ echo "📦 [Ubuntu Guest] Đang thiết lập hệ thống..."
 echo "🔧 Đang sửa lỗi dpkg (nếu có)..."
 dpkg --configure -a
 
+apt-get update
+
+apt-get install -y \
+python3 \
+python3-pip \
+python3-minimal
+
 # Sửa DNS nếu cần
 rm -f /etc/resolv.conf
 echo "nameserver 1.1.1.1" > /etc/resolv.conf
@@ -165,10 +172,34 @@ apt-get install -y libwxgtk3.2-dev:amd64 --ignore-missing || apt-get install -y 
 # Cài đặt Box64
 if ! command -v box64 &> /dev/null; then
     echo "🚀 Đang cài đặt Box64..."
-    curl -fsSL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/box64.gpg
-    echo "deb [arch=arm64] https://ryanfortner.github.io/box64-debs/ ./" > /etc/apt/sources.list.d/box64.list
-    apt-get update -y || true
-    apt-get install box64 -y
+echo "🚀 Build Box64 từ source..."
+
+apt-get install -y \
+git \
+build-essential \
+cmake
+
+cd /tmp
+
+rm -rf box64
+
+git clone https://github.com/ptitSeb/box64.git
+
+cd box64
+
+mkdir build
+cd build
+
+cmake .. \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DARM_DYNAREC=ON
+
+make -j$(nproc)
+
+make install
+
+ldconfig
+
 else
     echo "✅ Box64 đã sẵn sàng."
 fi
